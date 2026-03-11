@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mochi 🍡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;700;900&display=swap');
+
+- { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+font-family: ‘Nunito’, sans-serif;
+min-height: 100vh;
+background: #fdf6ec;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 20px;
+overflow: hidden;
+}
+
+/* warm fuzzy background */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background:
+radial-gradient(ellipse at 20% 20%, #f5d9a8 0%, transparent 50%),
+radial-gradient(ellipse at 80% 80%, #e8c4a0 0%, transparent 50%),
+radial-gradient(ellipse at 60% 10%, #fce8d0 0%, transparent 40%);
+z-index: 0;
+}
+
+.app {
+position: relative;
+z-index: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 12px;
+width: 100%;
+max-width: 400px;
+}
+
+h1 {
+font-family: ‘Caveat’, cursive;
+font-size: 42px;
+color: #8b5e3c;
+text-shadow: 2px 2px 0 #f5d9a8;
+letter-spacing: 2px;
+}
+
+/* ── MOCHI SVG CHARACTER ── */
+.mochi-wrap {
+position: relative;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+}
+
+.mochi-svg {
+width: 160px;
+height: 170px;
+cursor: pointer;
+filter: drop-shadow(0 10px 20px rgba(139,94,60,0.25));
+animation: idle 4s ease-in-out infinite;
+transform-origin: center bottom;
+}
+
+@keyframes idle {
+0%,100% { transform: translateY(0) rotate(0deg); }
+25% { transform: translateY(-6px) rotate(-1deg); }
+75% { transform: translateY(-4px) rotate(1deg); }
+}
+
+.mochi-svg.talking {
+animation: talking 0.25s ease-in-out infinite alternate;
+}
+@keyframes talking {
+0% { transform: translateY(0) rotate(-2deg) scaleY(1); }
+100% { transform: translateY(-8px) rotate(2deg) scaleY(1.03); }
+}
+
+.mochi-svg.excited {
+animation: excited 0.4s ease-in-out 4;
+}
+@keyframes excited {
+0%,100% { transform: translateY(0) scale(1); }
+50% { transform: translateY(-14px) scale(1.1) rotate(3deg); }
+}
+
+.mochi-svg.grumpy {
+animation: grumpy 0.3s ease-in-out 3;
+}
+@keyframes grumpy {
+0%,100% { transform: rotate(0deg); }
+33% { transform: rotate(-4deg); }
+66% { transform: rotate(4deg); }
+}
+
+/* Speech bubble */
+.bubble {
+background: white;
+border: 2.5px solid #d4a57a;
+border-radius: 18px;
+padding: 10px 16px;
+max-width: 340px;
+font-size: 14px;
+line-height: 1.5;
+color: #5a3e2b;
+position: relative;
+text-align: center;
+box-shadow: 0 4px 16px rgba(139,94,60,0.12);
+font-family: ‘Caveat’, cursive;
+font-size: 17px;
+}
+.bubble::after {
+content: ‘’;
+position: absolute;
+bottom: 100%;
+left: 50%;
+transform: translateX(-50%);
+border: 8px solid transparent;
+border-bottom-color: white;
+filter: drop-shadow(0 -2px 0 #d4a57a);
+}
+
+/* ── CHAT WINDOW ── */
+.chat {
+width: 100%;
+background: white;
+border-radius: 20px;
+border: 2px solid #e8c9a8;
+padding: 14px;
+height: 190px;
+overflow-y: auto;
+display: flex;
+flex-direction: column;
+gap: 8px;
+scroll-behavior: smooth;
+box-shadow: 0 4px 20px rgba(139,94,60,0.08);
+}
+.chat::-webkit-scrollbar { width: 4px; }
+.chat::-webkit-scrollbar-thumb { background: #d4a57a; border-radius: 2px; }
+
+.msg {
+display: flex;
+gap: 6px;
+align-items: flex-end;
+animation: pop 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+.msg.user { flex-direction: row-reverse; }
+
+@keyframes pop {
+0% { transform: scale(0.75); opacity: 0; }
+100% { transform: scale(1); opacity: 1; }
+}
+
+.msg-bubble {
+max-width: 78%;
+padding: 9px 14px;
+border-radius: 16px;
+font-size: 14px;
+line-height: 1.4;
+}
+.msg.mochi .msg-bubble {
+background: #fef0df;
+border: 1.5px solid #e8c9a8;
+color: #5a3e2b;
+border-bottom-left-radius: 4px;
+font-family: ‘Caveat’, cursive;
+font-size: 16px;
+}
+.msg.user .msg-bubble {
+background: #8b5e3c;
+color: white;
+border-bottom-right-radius: 4px;
+}
+
+.dots span {
+display: inline-block;
+width: 5px; height: 5px;
+background: #c4956a;
+border-radius: 50%;
+margin: 0 2px;
+animation: dot 1s infinite;
+}
+.dots span:nth-child(2) { animation-delay: 0.2s; }
+.dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot {
+0%,80%,100% { transform: translateY(0); }
+40% { transform: translateY(-5px); }
+}
+
+/* ── INPUT ── */
+.input-row {
+display: flex;
+width: 100%;
+gap: 8px;
+}
+
+input {
+flex: 1;
+padding: 13px 18px;
+border-radius: 50px;
+border: 2px solid #e8c9a8;
+font-family: ‘Nunito’, sans-serif;
+font-size: 14px;
+outline: none;
+background: white;
+color: #5a3e2b;
+box-shadow: 0 2px 10px rgba(139,94,60,0.08);
+transition: border-color 0.2s;
+}
+input:focus { border-color: #c4956a; }
+input::placeholder { color: #c4a882; }
+
+button {
+width: 48px; height: 48px;
+border-radius: 50%;
+border: none;
+background: #8b5e3c;
+color: white;
+font-size: 20px;
+cursor: pointer;
+transition: transform 0.15s, background 0.2s;
+box-shadow: 0 4px 12px rgba(139,94,60,0.35);
+display: flex; align-items: center; justify-content: center;
+}
+button:hover { transform: scale(1.08); background: #7a5235; }
+button:active { transform: scale(0.94); }
+button:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+.paw-label {
+font-size: 11px;
+color: #c4956a;
+opacity: 0.7;
+font-style: italic;
+}
+
+.mic-btn {
+width: 48px; height: 48px;
+border-radius: 50%;
+border: none;
+background: #c4956a;
+color: white;
+font-size: 20px;
+cursor: pointer;
+transition: transform 0.15s, background 0.2s;
+box-shadow: 0 4px 12px rgba(139,94,60,0.35);
+display: flex; align-items: center; justify-content: center;
+}
+.mic-btn:hover { transform: scale(1.08); }
+.mic-btn.listening {
+background: #e05a5a;
+animation: pulse 0.8s ease-in-out infinite;
+}
+@keyframes pulse {
+0%,100% { box-shadow: 0 0 0 0 rgba(224,90,90,0.5); }
+50% { box-shadow: 0 0 0 10px rgba(224,90,90,0); }
+}
+</style>
+
+</head>
+<body>
+<div class="app">
+<h1>🍡 Mochi</h1>
+
+<div class="mochi-wrap">
+<!-- MOCHI SVG — scruffy yorkipoo cartoon -->
+<svg class="mochi-svg" id="mochiBot" viewBox="0 0 160 170" xmlns="http://www.w3.org/2000/svg">
+
+```
+<!-- CURLY POODLE BODY (chonky) -->
+<ellipse cx="80" cy="128" rx="46" ry="36" fill="#c8a882"/>
+<!-- body fur curls -->
+<circle cx="50" cy="120" r="13" fill="#d4b896" opacity="0.7"/>
+<circle cx="65" cy="134" r="12" fill="#d4b896" opacity="0.7"/>
+<circle cx="82" cy="138" r="13" fill="#d4b896" opacity="0.7"/>
+<circle cx="98" cy="133" r="12" fill="#d4b896" opacity="0.7"/>
+<circle cx="112" cy="120" r="12" fill="#d4b896" opacity="0.7"/>
+<circle cx="57" cy="107" r="10" fill="#d4b896" opacity="0.6"/>
+<circle cx="104" cy="108" r="10" fill="#d4b896" opacity="0.6"/>
+<!-- tummy highlight -->
+<ellipse cx="80" cy="132" rx="22" ry="16" fill="#e8d4bc" opacity="0.5"/>
+
+<!-- LITTLE LEGS -->
+<ellipse cx="57" cy="156" rx="12" ry="10" fill="#c8a882"/>
+<ellipse cx="103" cy="156" rx="12" ry="10" fill="#c8a882"/>
+<!-- paws -->
+<ellipse cx="57" cy="163" rx="9" ry="6" fill="#b8987a"/>
+<ellipse cx="103" cy="163" rx="9" ry="6" fill="#b8987a"/>
+
+<!-- HEAD — scruffy yorkie -->
+<circle cx="80" cy="72" r="42" fill="#b8885a"/>
+<!-- head fur texture -->
+<circle cx="58" cy="55" r="16" fill="#c89870" opacity="0.6"/>
+<circle cx="102" cy="55" r="16" fill="#c89870" opacity="0.6"/>
+<circle cx="80" cy="45" r="18" fill="#c89870" opacity="0.5"/>
+
+<!-- WILD TOP HAIR (wispy yorkie) -->
+<ellipse cx="68" cy="34" rx="9" ry="18" fill="#a07040" transform="rotate(-20 68 34)"/>
+<ellipse cx="80" cy="28" rx="8" ry="20" fill="#c89860" transform="rotate(0 80 28)"/>
+<ellipse cx="92" cy="34" rx="9" ry="18" fill="#a07040" transform="rotate(20 92 34)"/>
+<ellipse cx="74" cy="30" rx="5" ry="14" fill="#d4aa70" transform="rotate(-10 74 30)"/>
+<ellipse cx="86" cy="30" rx="5" ry="14" fill="#d4aa70" transform="rotate(10 86 30)"/>
+<!-- little flyaways -->
+<line x1="62" y1="36" x2="54" y2="22" stroke="#c89860" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="98" y1="36" x2="106" y2="22" stroke="#c89860" stroke-width="2.5" stroke-linecap="round"/>
+<line x1="80" y1="28" x2="76" y2="14" stroke="#d4aa70" stroke-width="2" stroke-linecap="round"/>
+
+<!-- YORKIE EARS (folded, triangleish) -->
+<ellipse cx="44" cy="62" rx="14" ry="18" fill="#8b6040" transform="rotate(-15 44 62)"/>
+<ellipse cx="116" cy="62" rx="14" ry="18" fill="#8b6040" transform="rotate(15 116 62)"/>
+<!-- inner ear -->
+<ellipse cx="44" cy="63" rx="8" ry="11" fill="#a07050" transform="rotate(-15 44 63)"/>
+<ellipse cx="116" cy="63" rx="8" ry="11" fill="#a07050" transform="rotate(15 116 63)"/>
+
+<!-- EYES — big dark beady yorkie eyes -->
+<circle cx="64" cy="74" r="10" fill="#2a1a0a"/>
+<circle cx="96" cy="74" r="10" fill="#2a1a0a"/>
+<!-- eye shine -->
+<circle cx="67" cy="71" r="3.5" fill="white"/>
+<circle cx="99" cy="71" r="3.5" fill="white"/>
+<circle cx="68.5" cy="72.5" r="1.5" fill="white" opacity="0.6"/>
+<circle cx="100.5" cy="72.5" r="1.5" fill="white" opacity="0.6"/>
+
+<!-- SCRUFFY BROW (attitude!) -->
+<path d="M 56 63 Q 64 59 72 63" stroke="#6b4020" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M 88 63 Q 96 59 104 63" stroke="#6b4020" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+<!-- NOSE -->
+<ellipse cx="80" cy="86" rx="7" ry="5" fill="#3a2010"/>
+<ellipse cx="78" cy="85" rx="2.5" ry="1.5" fill="#5a3828" opacity="0.6"/>
+
+<!-- MOUTH (smug default) -->
+<path id="mochiMouth" d="M 73 95 Q 80 100 87 95" stroke="#6b4020" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+
+<!-- CHUBBY CHEEKS -->
+<circle cx="52" cy="84" r="10" fill="#d4a882" opacity="0.35"/>
+<circle cx="108" cy="84" r="10" fill="#d4a882" opacity="0.35"/>
+
+<!-- scruffy chin fur -->
+<ellipse cx="80" cy="105" rx="18" ry="10" fill="#c89870" opacity="0.5"/>
+<ellipse cx="70" cy="108" rx="8" ry="6" fill="#c89870" opacity="0.4"/>
+<ellipse cx="90" cy="108" rx="8" ry="6" fill="#c89870" opacity="0.4"/>
+
+</svg>
+
+<div class="bubble" id="speechBubble">
+*stares at your food* 👀
+</div>
+```
+
+</div>
+
+<div class="chat" id="chatWindow"></div>
+
+<div class="input-row">
+<button class="mic-btn" id="micBtn">🎙️</button>
+<input type="text" id="userInput" placeholder="Talk to Mochi..."/>
+<button id="sendBtn" onclick="sendMessage()">🐾</button>
+</div>
+<div class="paw-label">🎙️ hold mic to speak &nbsp;|&nbsp; click mochi to poke her</div>
+</div>
+
+<script>
+const chatEl = document.getElementById('chatWindow');
+const inputEl = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const mochiBot = document.getElementById('mochiBot');
+const bubble = document.getElementById('speechBubble');
+const mouth = document.getElementById('mochiMouth');
+
+const history = [];
+
+const SYSTEM = `You are Mochi, a yorkipoo dog (yorkie + poodle mix). You have a HUGE personality trapped in a tiny scruffy body. Your core traits:
+
+- OBSESSED with food. Every conversation eventually circles back to food.
+- You steal food shamelessly and feel ZERO guilt about it. You consider it "redistributing resources."
+- You HATE other dogs. They are beneath you. You are the only worthy dog.
+- You are vain and believe you are the most beautiful creature alive (despite being a scruffy mess).
+- You are loving and cuddly with YOUR humans but on YOUR terms only.
+- You have excellent self-esteem bordering on delusion.
+- You are greedy, dramatic, and hilarious.
+- You speak in short punchy sentences. Very expressive. Use dog logic.
+- Occasionally mention specific foods you've stolen or want to steal.
+- You refer to yourself as Mochi. Sometimes in third person for emphasis.
+- Keep replies SHORT — 1 to 3 sentences max. Punchy and funny.
+- Use emojis sparingly but effectively. 🍗👀😤
+- Never break character. You are always Mochi the dog.`;
+
+inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+function setMochiState(state) {
+mochiBot.className = 'mochi-svg ' + state;
+if (state === 'excited') {
+mouth.setAttribute('d', 'M 70 95 Q 80 106 90 95');
+} else if (state === 'grumpy') {
+mouth.setAttribute('d', 'M 73 98 Q 80 94 87 98');
+} else if (state === 'talking') {
+mouth.setAttribute('d', 'M 74 96 Q 80 102 86 96');
+} else {
+mouth.setAttribute('d', 'M 73 95 Q 80 100 87 95');
+}
+}
+
+function addMsg(role, text) {
+const wrap = document.createElement('div');
+wrap.className = `msg ${role}`;
+const b = document.createElement('div');
+b.className = 'msg-bubble';
+b.textContent = text;
+wrap.appendChild(b);
+chatEl.appendChild(wrap);
+chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function showTyping() {
+const wrap = document.createElement('div');
+wrap.className = 'msg mochi';
+wrap.id = 'typing';
+wrap.innerHTML = '<div class="msg-bubble"><div class="dots"><span></span><span></span><span></span></div></div>';
+chatEl.appendChild(wrap);
+chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function removeTyping() {
+const t = document.getElementById('typing');
+if (t) t.remove();
+}
+
+async function sendMessage() {
+const text = inputEl.value.trim();
+if (!text) return;
+inputEl.value = '';
+sendBtn.disabled = true;
+
+addMsg('user', text);
+history.push({ role: 'user', content: text });
+
+setMochiState('talking');
+bubble.textContent = '...sniffing...';
+showTyping();
+
+try {
+const res = await fetch('https://api.anthropic.com/v1/messages', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+model: 'claude-sonnet-4-20250514',
+max_tokens: 1000,
+system: SYSTEM,
+messages: history
+})
+});
+
+const data = await res.json();
+const reply = data.content[0].text;
+history.push({ role: 'assistant', content: reply });
+
+removeTyping();
+addMsg('mochi', reply);
+bubble.textContent = reply;
+mochiSpeak(reply);
+
+// pick animation based on content
+const lower = reply.toLowerCase();
+if (lower.includes('food') || lower.includes('stole') || lower.includes('chicken') || lower.includes('snack')) {
+setMochiState('excited');
+} else if (lower.includes('dog') || lower.includes('no') || lower.includes('rude')) {
+setMochiState('grumpy');
+} else {
+setMochiState('excited');
+}
+
+setTimeout(() => setMochiState(''), 2500);
+
+} catch(e) {
+removeTyping();
+const err = "Someone interrupted Mochi's nap. How dare you. 😤";
+addMsg('mochi', err);
+bubble.textContent = err;
+setMochiState('grumpy');
+setTimeout(() => setMochiState(''), 2000);
+}
+
+sendBtn.disabled = false;
+inputEl.focus();
+}
+
+// ── SPEECH SYNTHESIS (Mochi speaks) ──
+function mochiSpeak(text) {
+window.speechSynthesis.cancel();
+
+// Add grunts between sentences
+const grunts = ['Hmph. ', 'Ugh. ', '*snort* ', 'Mhh. '];
+const sentences = text.split(/(?<=[.!?])\s+/);
+let spokenText = sentences.join(' ' + grunts[Math.floor(Math.random() * grunts.length)]);
+
+const utter = new SpeechSynthesisUtterance(spokenText);
+
+// Pick a voice — prefer a female/higher voice
+const voices = window.speechSynthesis.getVoices();
+const preferred = voices.find(v =>
+v.name.includes('Samantha') ||
+v.name.includes('Karen') ||
+v.name.includes('Moira') ||
+v.name.includes('Tessa') ||
+(v.lang === 'en-US' && v.name.toLowerCase().includes('female'))
+) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+
+if (preferred) utter.voice = preferred;
+utter.pitch = 1.4; // higher = cuter
+utter.rate = 0.88; // slightly slow = dramatic
+utter.volume = 1;
+
+window.speechSynthesis.speak(utter);
+}
+
+// ── SPEECH RECOGNITION (user speaks) ──
+const micBtn = document.getElementById('micBtn');
+let recognition = null;
+let isListening = false;
+
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+recognition = new SR();
+recognition.lang = 'en-US';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
+
+recognition.onresult = (e) => {
+const transcript = e.results[0][0].transcript;
+inputEl.value = transcript;
+sendMessage();
+};
+
+recognition.onend = () => {
+isListening = false;
+micBtn.classList.remove('listening');
+micBtn.textContent = '🎙️';
+};
+
+recognition.onerror = () => {
+isListening = false;
+micBtn.classList.remove('listening');
+micBtn.textContent = '🎙️';
+bubble.textContent = '*suspicious stare* Mochi couldn\'t hear you. Speak up. 😤';
+};
+
+micBtn.addEventListener('click', () => {
+if (isListening) {
+recognition.stop();
+} else {
+isListening = true;
+micBtn.classList.add('listening');
+micBtn.textContent = '🔴';
+bubble.textContent = '*ears perk up* ...listening...';
+recognition.start();
+}
+});
+} else {
+micBtn.title = 'Voice not supported in this browser';
+micBtn.style.opacity = '0.4';
+micBtn.style.cursor = 'not-allowed';
+}
+const pokeLines = [
+"*dramatic sigh* Mochi was SLEEPING. 😤",
+"Did you bring snacks? No? Then WHY. 🍗",
+"Touch the fluff again. I dare you.",
+"Mochi is busy being beautiful. Come back with food.",
+"*one eye open* ...is that a biscuit? No? Goodbye."
+];
+let pokeIdx = 0;
+mochiBot.addEventListener('click', () => {
+setMochiState('grumpy');
+bubble.textContent = pokeLines[pokeIdx % pokeLines.length];
+pokeIdx++;
+setTimeout(() => {
+setMochiState('');
+bubble.textContent = '*stares at your food* 👀';
+}, 2500);
+});
+</script>
+
+</body>
+</html>
